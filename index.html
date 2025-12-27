@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>老牛按钮</title>
+    <style>
+        /* 样式和之前一致，无需修改 */
+        body {
+            font-family: "微软雅黑", Arial, sans-serif;
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 0 20px;
+            background-color: #f8f8f8;
+        }
+        .admin-login {
+            text-align: right;
+            margin-bottom: 10px;
+        }
+        #admin-login-btn {
+            padding: 8px 16px;
+            background-color: #666;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #admin-login-btn:hover {
+            background-color: #555;
+        }
+        .global-control {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        #pause-all-btn {
+            padding: 12px 30px;
+            background-color: #ff4466;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        #pause-all-btn:hover {
+            background-color: #e03355;
+        }
+        .control-area {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            display: none;
+        }
+        .control-group {
+            margin-bottom: 15px;
+        }
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+        .control-group input, .control-group select {
+            width: 200px;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        .control-btn {
+            padding: 8px 16px;
+            background-color: #ff4466;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+        }
+        .control-btn:hover {
+            background-color: #e03355;
+        }
+        .control-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .loading-text {
+            font-size: 12px;
+            color: #666;
+            margin-left: 10px;
+        }
+        .board-container {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        .section {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .section h3 {
+            margin: 0;
+            color: #333;
+            font-size: 18px;
+            border-left: 4px solid #ff4466;
+            padding-left: 10px;
+        }
+        .delete-section-btn {
+            padding: 4px 8px;
+            background-color: #ff7788;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            display: none;
+        }
+        .delete-section-btn:hover {
+            background-color: #ff5566;
+        }
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .audio-btn-wrapper {
+            display: flex;
+            align-items: center;
+        }
+        .play-btn {
+            padding: 8px 15px;
+            background-color: #ff4466;
+            color: white;
+            border: none;
+            border-radius: 20px 0 0 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        .play-btn:hover {
+            background-color: #e03355;
+        }
+        .delete-btn {
+            padding: 8px 8px;
+            background-color: #ff7788;
+            color: white;
+            border: none;
+            border-radius: 0 20px 20px 0;
+            cursor: pointer;
+            font-size: 14px;
+            display: none;
+        }
+        .delete-btn:hover {
+            background-color: #ff5566;
+        }
+        #clear-data-btn {
+            background-color: #666;
+            margin-left: 10px;
+        }
+        #clear-data-btn:hover {
+            background-color: #555;
+        }
+        .admin-tip {
+            color: #ff4466;
+            text-align: center;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-login">
+        <button id="admin-login-btn">管理员登录</button>
+    </div>
+    <div class="admin-tip" id="admin-tip">✅ 已进入管理员模式，可修改板块/按钮</div>
+    <div class="global-control">
+        <button id="pause-all-btn">暂停当前播放的音频</button>
+    </div>
+    <div class="control-area" id="control-area">
+        <div class="control-group">
+            <label>添加新板块</label>
+            <input type="text" id="section-name" placeholder="输入板块名称">
+            <button class="control-btn" id="add-section-btn">添加板块</button>
+        </div>
+        <div class="control-group">
+            <label>添加仓库音频按钮（仅管理员）</label>
+            <form id="audio-form">
+                <select id="section-select"></select>
+                <input type="text" id="btn-text" placeholder="按钮显示文字">
+                <input type="text" id="audio-url" placeholder="仓库音频Raw地址（如https://raw...mp3）">
+                <button type="button" class="control-btn" id="add-btn">添加按钮</button>
+                <span class="loading-text" id="loading-tip"></span>
+            </form>
+        </div>
+        <div class="control-group">
+            <button class="control-btn" id="clear-data-btn">清空本地数据（谨慎）</button>
+        </div>
+        <div class="control-group">
+            <button class="control-btn" id="export-data-btn">导出同步代码（复制到GitHub）</button>
+        </div>
+    </div>
+    <div class="board-container" id="board-container"></div>
+
+    <script>
+        // ------------- 核心配置 -------------
+        const ADMIN_PASSWORD = "yoiyoi"; // yoiyoi
+        // 默认内容：直接引用仓库里的音频URL，无需Base64
+        const DEFAULT_DATA = {
+            "sections": [
+                "牛の脏话",
+                
+            ],
+            "buttons": [
+                {
+                   
+                }
+            ]
+        };
+
+        // ------------- 全局变量 -------------
+        let currentAudio = null;
+        let isAdmin = false;
+        const STORAGE_KEY = 'audioButtonBoardData';
+
+        // ------------- 权限控制 -------------
+        function adminLogin() {
+            const inputPwd = prompt("请输入管理员密码：");
+            if (inputPwd === ADMIN_PASSWORD) {
+                isAdmin = true;
+                unlockAdminFunctions();
+                alert("登录成功！已进入管理员模式");
+            } else if (inputPwd !== null) {
+                alert("密码错误！");
+            }
+        }
+
+        function unlockAdminFunctions() {
+            document.getElementById('control-area').style.display = 'block';
+            document.getElementById('admin-tip').style.display = 'block';
+            document.querySelectorAll('.delete-section-btn').forEach(btn => {
+                btn.style.display = 'inline-block';
+            });
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.style.display = 'block';
+            });
+        }
+
+        // ------------- 数据处理 -------------
+        function loadData() {
+            if (isAdmin) {
+                // 管理员：优先读取本地存储（自己添加的临时按钮），无则用默认（仓库音频）
+                const rawData = localStorage.getItem(STORAGE_KEY);
+                if (rawData) {
+                    try {
+                        return JSON.parse(rawData);
+                    } catch (e) {
+                        alert('读取本地数据失败，使用仓库默认音频：' + e.message);
+                        return JSON.parse(JSON.stringify(DEFAULT_DATA));
+                    }
+                }
+            }
+            // 访客：仅读取仓库默认音频
+            return JSON.parse(JSON.stringify(DEFAULT_DATA));
+        }
+
+        function saveData(data) {
+            if (isAdmin) {
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                } catch (e) {
+                    alert('保存本地数据失败：' + e.message);
+                }
+            }
+        }
+
+        // ------------- 音频播放控制（核心：直接播放URL，无需Base64） -------------
+        function stopCurrentAudio() {
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+                currentAudio = null;
+            }
+        }
+
+        function playAudio(audioUrl) {
+            stopCurrentAudio();
+            const audio = new Audio(audioUrl);
+            audio.load();
+            audio.play().catch(error => {
+                alert('📱 手机播放提示：\n1. 先点击页面空白处激活，再点播放\n2. 建议用手机Chrome/Edge/Safari打开\n3. 错误原因：' + error.message);
+                audio.play();
+            });
+            audio.onended = () => {
+                currentAudio = null;
+            };
+            currentAudio = audio;
+        }
+
+        function pauseAllAudio() {
+            if (currentAudio) {
+                currentAudio.pause();
+            }
+        }
+
+        // ------------- DOM和渲染 -------------
+        function getDOMElements() {
+            return {
+                pauseAllBtn: document.getElementById('pause-all-btn'),
+                sectionNameInput: document.getElementById('section-name'),
+                addSectionBtn: document.getElementById('add-section-btn'),
+                sectionSelect: document.getElementById('section-select'),
+                btnTextInput: document.getElementById('btn-text'),
+                audioUrlInput: document.getElementById('audio-url'),
+                addBtn: document.getElementById('add-btn'),
+                loadingTip: document.getElementById('loading-tip'),
+                audioForm: document.getElementById('audio-form'),
+                boardContainer: document.getElementById('board-container'),
+                clearDataBtn: document.getElementById('clear-data-btn'),
+                adminLoginBtn: document.getElementById('admin-login-btn'),
+                exportDataBtn: document.getElementById('export-data-btn') // 新增：添加exportDataBtn的定义
+            };
+        }
+
+        function renderAllSections() {
+            const els = getDOMElements();
+            els.boardContainer.innerHTML = '';
+            const boardData = loadData();
+
+            boardData.sections.forEach(sectionName => {
+                const section = document.createElement('div');
+                section.className = 'section';
+                section.dataset.section = sectionName;
+                section.innerHTML = `
+                    <div class="section-header">
+                        <h3>${sectionName}</h3>
+                        <button class="delete-section-btn" data-section="${sectionName}">删除板块</button>
+                    </div>
+                    <div class="button-group" id="section-${sectionName}"></div>
+                `;
+                els.boardContainer.appendChild(section);
+
+                section.querySelector('.delete-section-btn').addEventListener('click', (e) => {
+                    if (isAdmin) {
+                        deleteSection(e.target.dataset.section);
+                    } else {
+                        alert('无权限删除！');
+                    }
+                });
+
+                renderButtonsInSection(sectionName);
+            });
+
+            if (isAdmin) {
+                unlockAdminFunctions();
+            }
+        }
+
+        function renderButtonsInSection(sectionName) {
+            const btnContainer = document.getElementById(`section-${sectionName}`);
+            if (!btnContainer) return;
+            btnContainer.innerHTML = '';
+            const boardData = loadData();
+            const sectionButtons = boardData.buttons.filter(btn => btn.section === sectionName);
+
+            sectionButtons.forEach(btn => {
+                const btnWrapper = document.createElement('div');
+                btnWrapper.className = 'audio-btn-wrapper';
+                btnWrapper.dataset.btnId = btn.id;
+
+                const playBtn = document.createElement('button');
+                playBtn.className = 'play-btn';
+                playBtn.textContent = btn.text;
+                playBtn.addEventListener('click', () => {
+                    // 播放仓库里的音频URL
+                    playAudio(btn.audioUrl);
+                });
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.textContent = '×';
+                deleteBtn.title = '删除该按钮';
+                deleteBtn.addEventListener('click', () => {
+                    if (isAdmin) {
+                        deleteButton(btn.id);
+                    } else {
+                        alert('无权限删除！');
+                    }
+                });
+
+                btnWrapper.appendChild(playBtn);
+                btnWrapper.appendChild(deleteBtn);
+                btnContainer.appendChild(btnWrapper);
+            });
+        }
+
+        function initSectionSelect() {
+            const els = getDOMElements();
+            els.sectionSelect.innerHTML = '';
+            const boardData = loadData();
+            boardData.sections.forEach(sectionName => {
+                const option = document.createElement('option');
+                option.value = sectionName;
+                option.textContent = sectionName;
+                els.sectionSelect.appendChild(option);
+            });
+        }
+
+        // ------------- 删除功能 -------------
+        function deleteButton(btnId) {
+            if (!isAdmin) return;
+            if (confirm('确定删除该按钮吗？（仅删除本地数据，仓库音频仍保留）')) {
+                let boardData = loadData();
+                boardData.buttons = boardData.buttons.filter(btn => btn.id !== btnId);
+                saveData(boardData);
+                renderAllSections();
+            }
+        }
+
+        function deleteSection(sectionName) {
+            if (!isAdmin) return;
+            if (confirm(`确定删除「${sectionName}」板块吗？（仅删除本地数据）`)) {
+                let boardData = loadData();
+                boardData.sections = boardData.sections.filter(name => name !== sectionName);
+                boardData.buttons = boardData.buttons.filter(btn => btn.section !== sectionName);
+                saveData(boardData);
+                renderAllSections();
+                initSectionSelect();
+            }
+        }
+
+        // ------------- 添加功能（管理员添加仓库音频按钮） -------------
+        function addNewSection() {
+            if (!isAdmin) return;
+            const els = getDOMElements();
+            const name = els.sectionNameInput.value.trim();
+            if (!name) {
+                alert('请输入板块名称！');
+                return;
+            }
+            let boardData = loadData();
+            if (boardData.sections.includes(name)) {
+                alert('该板块已存在！');
+                return;
+            }
+            boardData.sections.push(name);
+            saveData(boardData);
+            renderAllSections();
+            initSectionSelect();
+            els.sectionNameInput.value = '';
+        }
+
+        function addNewAudioBtn() {
+            if (!isAdmin) {
+                alert('无权限添加！');
+                return;
+            }
+            const els = getDOMElements();
+            const sectionName = els.sectionSelect.value;
+            const btnText = els.btnTextInput.value.trim();
+            const audioUrl = els.audioUrlInput.value.trim();
+
+            // 验证输入
+            if (!btnText) {
+                alert('请输入按钮文字！');
+                return;
+            }
+            if (!audioUrl || !audioUrl.startsWith('https://raw.githubusercontent.com/')) {
+                alert('请输入有效的仓库音频Raw地址！');
+                return;
+            }
+
+            try {
+                let boardData = loadData();
+                // 生成唯一ID
+                const btnId = Date.now().toString();
+                // 添加按钮（引用仓库音频URL）
+                boardData.buttons.push({
+                    id: btnId,
+                    section: sectionName,
+                    text: btnText,
+                    audioUrl: audioUrl
+                });
+                saveData(boardData);
+                renderAllSections();
+                // 清空输入框
+                els.audioForm.reset();
+                alert('仓库音频按钮添加成功！（如需所有人可见，需更新代码里的DEFAULT_DATA）');
+            } catch (err) {
+                alert(`添加失败：${err.message}`);
+            }
+        }
+
+        // 清空本地数据（仅管理员）
+        function clearAllData() {
+            if (!isAdmin) return;
+            if (confirm('确定清空本地数据吗？（仓库默认音频仍保留）')) {
+                const boardData = JSON.parse(JSON.stringify(DEFAULT_DATA));
+                saveData(boardData);
+                renderAllSections();
+                initSectionSelect();
+            }
+        }
+
+        // 导出同步代码到剪贴板（新增函数）
+        function exportDataToGitHub() {
+            const boardData = loadData();
+            // 生成DEFAULT_DATA的代码片段（格式化，直接粘贴到GitHub）
+            const defaultDataCode = `const DEFAULT_DATA = ${JSON.stringify(boardData, null, 2)};`;
+            // 复制到剪贴板
+            navigator.clipboard.writeText(defaultDataCode).then(() => {
+                alert('同步代码已复制！直接粘贴到GitHub的HTML文件里即可');
+            }).catch(err => {
+                alert('复制失败，请手动复制：\n' + defaultDataCode);
+            });
+        }
+
+        // ------------- 初始化 -------------
+        function init() {
+            const els = getDOMElements();
+            els.adminLoginBtn.addEventListener('click', adminLogin);
+            els.pauseAllBtn.addEventListener('click', pauseAllAudio);
+            els.addSectionBtn.addEventListener('click', addNewSection);
+            els.addBtn.addEventListener('click', addNewAudioBtn);
+            els.clearDataBtn.addEventListener('click', clearAllData);
+            // 绑定导出同步代码按钮事件
+            els.exportDataBtn.addEventListener('click', exportDataToGitHub);
+            renderAllSections();
+            initSectionSelect();
+        }
+
+        init();
+    </script>
+</body>
+</html>
