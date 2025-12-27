@@ -209,47 +209,20 @@
     <div class="board-container" id="board-container"></div>
 
     <script>
-       <script>
-    // ------------- 全局变量 -------------（先声明全局变量，移到最前面！）
-    let currentAudio = null;
-    let isAdmin = false; // 先声明isAdmin，再定义使用它的函数
-    const STORAGE_KEY = 'audioButtonBoardData';
-
-    // ------------- 核心配置 -------------（变量声明后，再放核心配置，顺序不变）
-    const ADMIN_PASSWORD = "yoiyoi"; // yoiyoi
-    // 默认内容：直接引用仓库里的音频URL，无需Base64
-    const DEFAULT_DATA = {
-  "sections": ["牛の脏话"],
-  "buttons": [
-    {
-      "id": "1766844576503",
-      "section": "牛の脏话",
-      "text": "wcnmd",
-      "audioUrl": "https://raw.githubusercontent.com/hermanbeach150xx-afk/laoniu/main/audio/wcnmd.mp3"
-    },
-    {
-      "id": "1766844713509",
-      "section": "牛の脏话",
-      "text": "wcnmd",
-      "audioUrl": "https://raw.githubusercontent.com/hermanbeach150xx-afk/laoniu/main/audio/wcnmd.mp3"
-    }
-  ]
-};
-
-    // ------------- 权限控制 -------------（此时再定义adminLogin函数，就不会报错了）
-    function adminLogin() {
-        const inputPwd = prompt("请输入管理员密码：");
-        if (inputPwd === ADMIN_PASSWORD) {
-            isAdmin = true; // 此时isAdmin已经初始化，可正常赋值
-            unlockAdminFunctions();
-            alert("登录成功！已进入管理员模式");
-        } else if (inputPwd !== null) {
-            alert("密码错误！");
-        }
-    }
-
-    // 后面的所有函数（unlockAdminFunctions、loadData等）顺序不变...
-</script>
+        // ------------- 核心配置 -------------
+        const ADMIN_PASSWORD = "yoiyoi"; // yoiyoi
+        // 默认内容：直接引用仓库里的音频URL，无需Base64
+        const DEFAULT_DATA = {
+            "sections": [
+                "牛の脏话",
+                
+            ],
+            "buttons": [
+                {
+                   
+                }
+            ]
+        };
 
         // ------------- 全局变量 -------------
         let currentAudio = null;
@@ -351,7 +324,7 @@
                 boardContainer: document.getElementById('board-container'),
                 clearDataBtn: document.getElementById('clear-data-btn'),
                 adminLoginBtn: document.getElementById('admin-login-btn'),
-                exportDataBtn: document.getElementById('export-data-btn') // 已包含该元素，无需修改
+                exportDataBtn: document.getElementById('export-data-btn') // 新增：添加exportDataBtn的定义
             };
         }
 
@@ -566,4 +539,3 @@
     </script>
 </body>
 </html>
-
